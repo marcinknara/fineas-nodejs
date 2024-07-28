@@ -19,9 +19,9 @@ function LoginPage() {
           password,
         });
 
-        if (response.data) {
+        if (response.status === 200) {
           console.log('User logged in successfully');
-          setAuth(true);
+          setAuth({ email });
           setToken(response.data.token);
           navigate('/dashboard');
         }

@@ -2,7 +2,7 @@ import React, { createContext, useState } from 'react';
 import axios from "axios";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import AppRoutes from './routes/AppRoutes';
 
 import { usePlaidLink } from 'react-plaid-link';
@@ -31,15 +31,12 @@ axios.defaults.baseURL = 'http://localhost:8000';
 // }
 
 function App() {
-  const [auth, setAuth] = useState(false);
-  const [token, setToken] = useState(null);
-
   return (
-    <AuthContext.Provider value={{ auth, setAuth, token, setToken }}>
+    <AuthProvider>
       <Router>
         <AppRoutes />
       </Router>
-    </AuthContext.Provider>
+    </AuthProvider>
   );
 }
 

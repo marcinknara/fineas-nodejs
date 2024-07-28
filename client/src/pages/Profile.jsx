@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-function Dashboard() {
+function Profile() {
   const { auth, setAuth, setToken } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -14,7 +14,7 @@ function Dashboard() {
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <h1>Profile</h1>
       <p>Email: {auth.email}</p>
       <p>Authenticated: {auth ? 'Yes' : 'No'}</p>
       <button onClick={handleSignOut}>Sign Out</button>
@@ -22,4 +22,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Profile;
