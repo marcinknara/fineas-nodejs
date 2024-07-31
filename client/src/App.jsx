@@ -5,31 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import AppRoutes from './routes/AppRoutes';
 
-import { usePlaidLink } from 'react-plaid-link';
-
-axios.defaults.baseURL = 'http://localhost:8000';
-
-// function PlaidAuth({publicToken}){
-
-//   const [account, setAccount] = useState(null);
-
-//   useEffect(() => {
-
-//     async function fetchData() {
-//       let accessToken = await axios.post('/plaid/exchange_public_token', {public_token: publicToken});
-//       console.log("accessToken: " + JSON.stringify(accessToken.data));
-
-//       const auth = await axios.post('/plaid/auth', {access_token: accessToken.data.accessToken});
-//       console.log("auth: " + JSON.stringify(auth.data));
-//       setAccount(auth.data.numbers.ach[0]);
-//     }
-//     fetchData();
-//   }, []);
-
-
-//   return account && (<><p>Account number: {account.account}</p><p>Routing number: {account.routing}</p></>)
-// }
-
 function App() {
   return (
     <AuthProvider>

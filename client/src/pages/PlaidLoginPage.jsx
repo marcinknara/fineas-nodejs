@@ -2,26 +2,24 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
+import {usePlaidLink} from 'react-plaid-link';
 
-function PlaidLoginPage() {
+axios.defaults.baseURL = 'http://localhost:8000';
+
+function PlaidAuth({publicToken}){
   const { auth, setAuth, setToken } = useContext(AuthContext);
-  const navigate = useNavigate();
   const [account, setAccount] = useState(null);
 
   useEffect(() => {
-    const publicToken = "your_public_token_here"; // Replace with actual token retrieval logic
-    async function fetchPlaidData() {
-      let accessToken = await axios.post('/plaid/exchange_public_token', { public_token: publicToken });
+    async function fetchData() {
+      let accessToken = await axios.post('/plaid/exchange_public_token', {public_token: publicToken});
       console.log("accessToken: " + JSON.stringify(accessToken.data));
 
-      const authResponse = await axios.post('/plaid/auth', { access_token: accessToken.data.accessToken });
-      console.log("auth: " + JSON.stringify(authResponse.data));
+      const authResponse = await axios.post('/plaid/auth', {access_token: accessToken.data.accessToken});
+      console.log("authResponse: " + JSON.stringify(authResponse.data));
       setAccount(authResponse.data.numbers.ach[0]);
     }
-
-    if (auth) {
-      fetchPlaidData();
-    }
+    fetchData();
   }, [auth]);
 
   const handleSignOut = () => {
@@ -30,20 +28,47 @@ function PlaidLoginPage() {
     navigate('/login');
   };
 
-  return (
-    <div>
-      <h1>PlaidLoginPage</h1>
-      {account ? (
-        <>
-          <p>Account number: {account.account}</p>
-          <p>Routing number: {account.routing}</p>
-        </>
-      ) : (
-        <p>Loading account information...</p>
-      )}
+  return account && (
+    <>
+      <h1>PlaidPage</h1>
+      <p>Account number: {account.account}</p>
+      <p>Routing number: {account.routing}</p>
       <p>Authenticated: {auth ? 'Yes' : 'No'}</p>
       <button onClick={handleSignOut}>Sign Out</button>
-    </div>
+    </>
+  );
+
+  
+}
+
+function PlaidLoginPage() {
+  const { auth, setAuth, setToken } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [linkToken, setLinkToken] = useState(null);
+  const [publicToken, setPublicToken] = useState();
+
+  useEffect(() => {
+    async function fetchData() {
+      const response = await axios.post('/plaid/create_link_token');
+      setLinkToken(response.data.link_token);
+    }
+
+    if (auth) {
+      fetchData();
+    }
+  }, [auth]);
+
+  const { open, ready } = usePlaidLink({
+    token: linkToken,
+    onSuccess: (public_token, metadata) => {
+      console.log('public_token: ', public_token);
+      console.log('metadata: ', metadata);
+      setPublicToken(public_token);
+    },
+  })
+
+  return publicToken ? (<PlaidAuth publicToken={publicToken}/>) : (
+    <button onClick={() => open()} disabled={!ready}>Connect a bank account</button>
   );
 }
 
