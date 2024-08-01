@@ -3,6 +3,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
+import { GoogleLogin } from '@react-oauth/google';
+
+
+
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,6 +36,7 @@ function LoginPage() {
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit}>
       <input
         type="email"
@@ -49,6 +54,19 @@ function LoginPage() {
       />
       <button type="submit">Login</button>
     </form>
+    
+    
+    <GoogleLogin
+    onSuccess={credentialResponse => {
+      console.log(credentialResponse);
+    }}
+    onError={() => {
+      console.log('Login Failed');
+    }}/>;
+  </>
+    
+
+    
   );
 }
 
