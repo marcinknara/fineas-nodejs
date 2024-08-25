@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
 import {usePlaidLink} from 'react-plaid-link';
+import FinancialDataTable from '../components/FinancialDataTable'; // Adjust the path as necessary
 
 axios.defaults.baseURL = 'http://localhost:8000';
 
@@ -17,10 +18,9 @@ function PlaidAuth({publicToken}){
 
       const authResponse = await axios.post('/plaid/auth', {access_token: accessToken.data.accessToken});
       console.log("authResponse: " + JSON.stringify(authResponse.data));
-      setAccount(authResponse.data.numbers.ach[0]);
-    }
+      setAccount({accounts: authResponse.data.accounts});    }
     fetchData();
-  }, [auth]);
+  }, [publicToken]);
 
   const handleSignOut = () => {
     setAuth(false);
@@ -30,10 +30,11 @@ function PlaidAuth({publicToken}){
 
   return account && (
     <>
-      <h1>PlaidPage</h1>
+      <h1>Plaid Dashboard</h1>
       <p>Account number: {account.account}</p>
       <p>Routing number: {account.routing}</p>
       <p>Authenticated: {auth ? 'Yes' : 'No'}</p>
+      <FinancialDataTable account={account} />
       <button onClick={handleSignOut}>Sign Out</button>
     </>
   );
@@ -71,5 +72,6 @@ function PlaidLoginPage() {
     <button onClick={() => open()} disabled={!ready}>Connect a bank account</button>
   );
 }
+
 
 export default PlaidLoginPage;

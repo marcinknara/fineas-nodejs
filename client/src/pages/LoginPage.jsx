@@ -62,7 +62,7 @@ function LoginPage() {
     }}
     onError={() => {
       console.log('Login Failed');
-    }}/>;
+    }}/>
   </>
     
 

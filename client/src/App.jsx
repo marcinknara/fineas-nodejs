@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import AppRoutes from './routes/AppRoutes';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import NavBar from './components/NavBar';
 
 function App() {
   return (
     <GoogleOAuthProvider clientId="556616736329-346n974q14mhke2lkseq0id50k3lumpk.apps.googleusercontent.com">
     <AuthProvider>
       <Router>
+        <NavBar />
         <AppRoutes />
       </Router>
     </AuthProvider>
