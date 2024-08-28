@@ -3,6 +3,9 @@ const router = express.Router();
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Create a new user
 router.post('/', async (req, res) => {
@@ -72,7 +75,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-//Login 
+// Login 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -91,4 +94,34 @@ router.post('/login', async (req, res) => {
   const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
   res.status(200).send({ token, email: user.email });
 });
+
+// Google login
+router.post('/google-login', async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({ email, password: '' });
+      await user.save();
+      console.log('New user created:', user);
+    }
+
+    const jwtToken = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+    res.status(200).send({ token: jwtToken, email: user.email });
+  } catch (error) {
+    console.error('Error verifying Google token:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 module.exports = router;
