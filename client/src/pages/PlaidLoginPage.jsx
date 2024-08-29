@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import{ useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
@@ -9,7 +9,7 @@ axios.defaults.baseURL = 'http://localhost:8000';
 
 function PlaidAuth({publicToken}){
   const { auth, setAuth, setToken } = useContext(AuthContext);
-  const [account, setAccount] = useState(null);
+  const [accounts, setAccounts] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -18,7 +18,7 @@ function PlaidAuth({publicToken}){
 
       const authResponse = await axios.post('/plaid/auth', {access_token: accessToken.data.accessToken});
       console.log("authResponse: " + JSON.stringify(authResponse.data));
-      setAccount({accounts: authResponse.data.accounts});    }
+      setAccounts({accounts: authResponse.data.accounts});    }
     fetchData();
   }, [publicToken]);
 
@@ -28,13 +28,13 @@ function PlaidAuth({publicToken}){
     navigate('/login');
   };
 
-  return account && (
+  return accounts && (
     <>
       <h1>Plaid Dashboard</h1>
-      <p>Account number: {account.account}</p>
-      <p>Routing number: {account.routing}</p>
+      <p>Account number: {accounts.account}</p>
+      <p>Routing number: {accounts.routing}</p>
       <p>Authenticated: {auth ? 'Yes' : 'No'}</p>
-      <FinancialDataTable account={account} />
+      <FinancialDataTable accounts={accounts} />
       <button onClick={handleSignOut}>Sign Out</button>
     </>
   );

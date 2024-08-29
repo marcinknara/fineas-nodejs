@@ -1,6 +1,6 @@
 import React from 'react';
 
-function FinancialDataTable({ account }) {
+function FinancialDataTable({ accounts }) {
   return (
     <div>
       <h2>Accounts Overview</h2>
