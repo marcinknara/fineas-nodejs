@@ -10,10 +10,13 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  plaidAccessToken: {
+    type: String
+  },
   date: {
     type: Date,
     default: Date.now,
-  },
+  }
 });
 
 module.exports = mongoose.models.User || mongoose.model('User', UserSchema);

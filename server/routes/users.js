@@ -3,6 +3,8 @@ const router = express.Router();
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const authenticateToken = require('../middleware/authenticateToken');
+
 
 // Create a new user
 router.post('/', async (req, res) => {
@@ -31,7 +33,7 @@ router.post('/', async (req, res) => {
 });
 
 // Delete a user
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     let user = await User.findById(req.params.id);
 
@@ -49,7 +51,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Update a user
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -59,9 +61,13 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
+    const updatedData = {};
+    if (email) updatedData.email = email;
+    if (password) updatedData.password = await bcrypt.hash(password, 8);
+
     user = await User.findByIdAndUpdate(
       req.params.id,
-      { email, password },
+      updatedData,
       { new: true }
     );
 
