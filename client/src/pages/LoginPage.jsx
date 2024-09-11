@@ -23,6 +23,10 @@ function LoginPage() {
           console.log('User logged in successfully');
           setAuth({ email });
           setToken(response.data.token);
+
+          // Save the token in localStorage for future requests
+          localStorage.setItem('token', response.data.token);
+          
           navigate('/dashboard');
         }
       } catch (error) {
