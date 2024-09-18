@@ -10,9 +10,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  plaidAccessToken: {
-    type: String
-  },
+  plaidItems: [{  // Link to Plaid Items associated with the user
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PlaidItem',
+  }],
   date: {
     type: Date,
     default: Date.now,
