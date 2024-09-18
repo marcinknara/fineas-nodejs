@@ -7,12 +7,13 @@ import FinancialDataTable from '../components/FinancialDataTable'; // Adjust the
 
 axios.defaults.baseURL = 'http://localhost:8000';
 
-function PlaidAuth({publicToken}){
+function PlaidAuth({ publicToken, institutionName, institutionType }) {
   const { auth, setAuth, setToken } = useContext(AuthContext);
   const [account, setAccount] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
+      console.log('Fetching data in PlaidAuth useEffect...');
       const token = localStorage.getItem('token');
 
       if (!token) {
@@ -23,7 +24,7 @@ function PlaidAuth({publicToken}){
         // Exchange public token for access token
         const accessTokenResponse = await axios.post(
           '/plaid/exchange_public_token',
-          { public_token: publicToken },
+          { public_token: publicToken, institution_name: institutionName, institution_type: institutionType },
           {
             headers: {
               'Authorization': `Bearer ${token}`, // Attach JWT token to request
@@ -33,8 +34,6 @@ function PlaidAuth({publicToken}){
 
         const accessToken = accessTokenResponse.data.accessToken;
         console.log("Access Token: ", accessToken);
-
-      
 
         // Call /plaid/auth to retrieve account data using the access token
         const authResponse = await axios.post(
@@ -47,7 +46,6 @@ function PlaidAuth({publicToken}){
           }
         );
 
-
         console.log("Auth Response: ", authResponse.data);
         setAccount({ accounts: authResponse.data.accounts });
       } catch (error) {
@@ -55,7 +53,7 @@ function PlaidAuth({publicToken}){
       }
     }
     fetchData();
-  }, [publicToken]);
+  }, [publicToken, institutionName, institutionType]);
 
   const handleSignOut = () => {
     setAuth(false);
@@ -66,25 +64,24 @@ function PlaidAuth({publicToken}){
   return account && (
     <>
       <h1>Plaid Dashboard</h1>
-      <p>Account number: {account.account}</p>
-      <p>Routing number: {account.routing}</p>
       <p>Authenticated: {auth ? 'Yes' : 'No'}</p>
       <FinancialDataTable account={account} />
       <button onClick={handleSignOut}>Sign Out</button>
     </>
   );
-
-  
 }
 
 function PlaidLoginPage() {
-  const { auth, setAuth, setToken } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { auth } = useContext(AuthContext);
   const [linkToken, setLinkToken] = useState(null);
-  const [publicToken, setPublicToken] = useState();
+  const [publicToken, setPublicToken] = useState(null);
+  const [institutionName, setInstitutionName] = useState(null);
+  const [institutionType, setInstitutionType] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('Fetching data in PlaidLoginPage useEffect...');
+
       // Get token from localStorage
       const token = localStorage.getItem('token');
 
@@ -96,9 +93,9 @@ function PlaidLoginPage() {
         headers: {
           'Authorization': `Bearer ${token}`, // Attach JWT token to request
         }
-      } );
+      });
       setLinkToken(response.data.link_token);
-    }
+    };
 
     if (auth) {
       fetchData();
@@ -110,11 +107,24 @@ function PlaidLoginPage() {
     onSuccess: (public_token, metadata) => {
       console.log('public_token: ', public_token);
       console.log('metadata: ', metadata);
-      setPublicToken(public_token);
-    },
-  })
 
-  return publicToken ? (<PlaidAuth publicToken={publicToken}/>) : (
+      const institution_name = metadata.institution.name;  // Extract institution name
+      const institution_type = metadata.accounts[0]?.subtype || "Unknown";  // Extract account subtype (e.g., checking, savings)
+
+      // Set the public token and related metadata
+      setPublicToken(public_token);
+      setInstitutionName(institution_name);
+      setInstitutionType(institution_type);
+    },
+  });
+
+  return publicToken ? (
+    <PlaidAuth 
+      publicToken={publicToken} 
+      institutionName={institutionName} 
+      institutionType={institutionType} 
+    />
+  ) : (
     <button onClick={() => open()} disabled={!ready}>Connect a bank account</button>
   );
 }
