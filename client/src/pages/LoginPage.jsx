@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
@@ -23,6 +23,10 @@ function LoginPage() {
           console.log('User logged in successfully');
           setAuth({ email });
           setToken(response.data.token);
+
+          // Save the token in localStorage for future requests
+          localStorage.setItem('token', response.data.token);
+          
           navigate('/dashboard');
         }
       } catch (error) {
@@ -32,6 +36,7 @@ function LoginPage() {
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit}>
       <input
         type="email"
@@ -49,6 +54,11 @@ function LoginPage() {
       />
       <button type="submit">Login</button>
     </form>
+    
+  </>
+    
+
+    
   );
 }
 

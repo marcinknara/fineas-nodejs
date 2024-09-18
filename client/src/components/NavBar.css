@@ -1,0 +1,17 @@
+.navbar {
+  width: 100%;
+  padding: 10px 20px;
+}
+.nav-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.nav-links {
+  margin-left: 20px;
+}
+.nav-links a {
+  text-decoration: none;
+  margin-right: 15px;
+  padding: 5px 10px;
+}
