@@ -8,6 +8,7 @@ import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
 import { Navigate } from 'react-router-dom';
 import PlaidLoginPage from '../pages/PlaidLoginPage';
+import DashboardPage from '../pages/DashboardPage';
 
 function AppRoutes() {
   const { auth } = useContext(AuthContext);
@@ -20,7 +21,7 @@ function AppRoutes() {
       <Route path="/signup" element={auth ? <Navigate to="/dashboard" /> : <SignupPage />} />
       {/* <Route path="/dashboard" element={auth ? <Dashboard /> : <Navigate to="/login" />} /> */}
       <Route path="/profile" element={auth ? <Profile /> : <Navigate to="/login" />} />
-      <Route path="/dashboard" element={auth ? <PlaidLoginPage /> : <Navigate to="/login" />} />
+      <Route path="/dashboard" element={auth ? <DashboardPage /> : <Navigate to="/login" />} />
       {/* Add more routes as needed */}
     </Routes>
   );
