@@ -30,38 +30,29 @@ router.post('/create_link_token', authenticateToken, async function (request, re
   }
 });
 
+// routes/plaid.js
+
 router.post('/exchange_public_token', authenticateToken, async function (request, response) {
-  const { public_token, institution_name, institution_type } = request.body;
+  const { public_token, institution_name, institution_type, institution_id } = request.body;
 
-  console.log("Received public_token: ", public_token);
-  console.log("Received institution_name: ", institution_name);
-  console.log("Received institution_type: ", institution_type);
-
-  if (!public_token || !institution_name || !institution_type) {
-    return response.status(400).json({ message: 'Public token, institution name, and institution type are required' });
-  }
+  // ... existing validation code ...
 
   try {
     // Exchange public token for an access token and item_id
-    const plaidResponse = await plaidClient.itemPublicTokenExchange({
-      public_token: public_token
-    });
-
+    const plaidResponse = await plaidClient.itemPublicTokenExchange({ public_token });
     const accessToken = plaidResponse.data.access_token;
     const itemId = plaidResponse.data.item_id;
 
-    // Check if this user already has a PlaidItem with the same institution name or item_id
+    // Check if this user already has a PlaidItem with the same institution_id
     let plaidItem = await PlaidItem.findOne({ 
       user: request.user._id, 
-      $or: [
-        { item_id: itemId }, 
-        { institution_name: institution_name }
-      ] 
+      institution_id: institution_id,
     });
 
     if (plaidItem) {
       // Update the existing item if it already exists
       plaidItem.access_token = accessToken;
+      plaidItem.item_id = itemId; // Update item_id
       plaidItem.institution_type = institution_type;
       await plaidItem.save();  // Save updated item
 
@@ -72,6 +63,7 @@ router.post('/exchange_public_token', authenticateToken, async function (request
         user: request.user._id,
         access_token: accessToken,
         item_id: itemId,
+        institution_id: institution_id,
         institution_name: institution_name,
         institution_type: institution_type,
       });
@@ -81,13 +73,13 @@ router.post('/exchange_public_token', authenticateToken, async function (request
       // Add the new PlaidItem to the User's plaidItems array if it's not already there
       await User.findByIdAndUpdate(
         request.user._id,
-        { $addToSet: { plaidItems: plaidItem._id } },  // $addToSet ensures no duplicates
+        { $addToSet: { plaidItems: plaidItem._id } },
       );
 
       return response.json({ message: "Item connected successfully", accessToken });
     }
   } catch (error) {
-    console.error('Error exchanging public token:', error);
+    console.error('Error exchanging public token:', error.response?.data || error.message);
     return response.status(500).send('Server Error');
   }
 });
@@ -109,7 +101,7 @@ router.post('/auth', authenticateToken, async function (request, response) {
       const plaidRequest = { access_token: item.access_token };
       const plaidResponse = await plaidClient.authGet(plaidRequest);
       const accounts = plaidResponse.data.accounts;
-      
+
       // Save each account in the database
       for (const account of accounts) {
         const achDetails = plaidResponse.data.numbers.ach.find(n => n.account_id === account.account_id);
@@ -118,6 +110,7 @@ router.post('/auth', authenticateToken, async function (request, response) {
           user: request.user._id,
           plaid_item_id: item.item_id,
           account_id: account.account_id,
+          account_number: achDetails?.account,
           name: account.name,
           official_name: account.official_name,
           subtype: account.subtype,
@@ -130,9 +123,9 @@ router.post('/auth', authenticateToken, async function (request, response) {
           wire_routing: achDetails?.wire_routing,
         };
 
-        // Upsert the account in the database (update if exists, insert if not)
+        // Upsert the account in the database
         await Account.findOneAndUpdate(
-          { account_id: account.account_id },
+          { user: request.user._id, account_number: achDetails?.account, routing: achDetails?.routing },
           accountData,
           { upsert: true, new: true }
         );
@@ -143,8 +136,23 @@ router.post('/auth', authenticateToken, async function (request, response) {
 
     response.json({ accounts: allAccountsData });
   } catch (error) {
-    console.error('Error fetching auth data from Plaid:', error);
+    console.error('Error fetching auth data from Plaid:', error);  // Corrected line
     response.status(500).send('Server Error');
+  }
+});
+
+// Get Accounts Data from Database
+router.get('/accounts', authenticateToken, async function (req, res) {
+  
+  try {
+    const userId = req.user._id; // Assuming authenticateToken sets req.user
+    console.log('Fetching accounts for user ID: ', req.user._id);
+    const accounts = await Account.find({ user: userId });
+    console.log('Accounts found: ', accounts);
+    res.json({ accounts });
+  } catch (error) {
+    console.error('Error fetching accounts from database: ', error);
+    res.status(500).send('Server Error');
   }
 });
 

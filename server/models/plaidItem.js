@@ -4,25 +4,28 @@ const PlaidItemSchema = new mongoose.Schema({
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
-    required: true  // Link to the user who owns this Item
+    required: true
   },
   access_token: {
     type: String,
     required: true,
   },
-  item_id: {  // Unique ID for the Item from Plaid
-    type: String,
-    required: true,
-    unique: true,
-  },
-  institution_name: {  // The name of the financial institution (e.g., Bank of America)
+  item_id: {
     type: String,
     required: true,
   },
-  institution_type: {  // The type of institution (e.g., checking, savings)
+  institution_id: {  // Add this field
+    type: String,
+    required: true,
+  },
+  institution_name: {
+    type: String,
+    required: true,
+  },
+  institution_type: {
     type: String,
   },
-  date_connected: {  // Date when the Item was connected
+  date_connected: {
     type: Date,
     default: Date.now,
   },
